@@ -1,5 +1,5 @@
 <?php
-include "config.php";
+include "../config.php";
 ?>
 
 <!doctype html>
@@ -29,19 +29,40 @@ include "config.php";
             die();
         }
 
+        if (isset($_POST["save"])) {
+            $qCheckUsersInfo = "SELECT * FROM users";
+            $qCheckUsersResult = $dbh->prepare("select id_user,username,stream_key,private,private_key,live_status from users WHERE id_user <> :old_id_user");
+            $qCheckUsersResult->execute(array(':old_id_user' => $_POST['save']));
+        }
+        if (isset($_POST["new"])) {
+            $qCheckUsersInfo = "SELECT * FROM users";
+            $qCheckUsersResult = $dbh->query('select id_user,username,stream_key,private,private_key,live_status from users');
+        }
+
+        if (isset($qCheckUsersInfo)) {
+            while ($loopUsersResult = $qCheckUsersResult->fetch()) {
+                if ($_POST['id_user'] == $loopUsersResult['id_user'] || $_POST["username"] == $loopUsersResult['username'] || $_POST["stream_key"] == $loopUsersResult['stream_key']) {
+                    $postGotSame = true;
+                }
+            }
+        }
+
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($_POST['id_user'] == null) {
                 echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
                     Must input a User ID
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                ';
+                </div>';
             } elseif (!is_numeric($_POST['id_user'])) {
                 echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
                     User ID must be numeric!
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                ';
+                </div>';
+            } elseif ($postGotSame == true) {
+                echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    Got same data exist!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>';
             } else {
                 if (isset($_POST["save"])) {
                     $qGetUserIDInfo = $dbh->prepare("SELECT id_user,username,stream_key,private,private_key,live_status FROM users WHERE id_user = :old_id_user");
@@ -172,13 +193,13 @@ include "config.php";
                         </div>';
             if ($loopUsersResult['username'] != null && $loopUsersResult['stream_key'] != null) {
                 if ($loopUsersResult['private'] == 1 && $loopUsersResult['private_key'] != null) {
-                    echo '<div class="alert alert-success" role="alert">OBS stream server: ' . $rtmpurl . '<br>OBS stream key: ' . $loopUsersResult['stream_key'] . '<br>Stream URL: '. $rtmpurl . $loopUsersResult['username'] . '?key=' . $loopUsersResult['private_key'] . '</div>';
+                    echo '<div class="alert alert-success" role="alert">OBS stream server: ' . $rtmpurl . '<br>OBS stream key: ' . $loopUsersResult['stream_key'] . '<br>Stream URL: ' . $rtmpurl . $loopUsersResult['username'] . '?key=' . $loopUsersResult['private_key'] . '</div>';
                 }
                 if ($loopUsersResult['private'] == 1 && $loopUsersResult['private_key'] == null) {
                     echo '<div class="alert alert-success" role="alert">OBS stream server: ' . $rtmpurl . '<br>OBS stream key: ' . $loopUsersResult['stream_key'] . '<br>Stream URL: Temporarily unavailable</div>';
                 }
                 if ($loopUsersResult['private'] == 0) {
-                    echo '<div class="alert alert-success" role="alert">OBS stream server: ' . $rtmpurl . '<br>OBS stream key: ' . $loopUsersResult['stream_key'] . '<br>Stream URL: '. $rtmpurl . $loopUsersResult['username'] . '</div>';
+                    echo '<div class="alert alert-success" role="alert">OBS stream server: ' . $rtmpurl . '<br>OBS stream key: ' . $loopUsersResult['stream_key'] . '<br>Stream URL: ' . $rtmpurl . $loopUsersResult['username'] . '</div>';
                 }
             }
             echo '</div>
@@ -186,15 +207,14 @@ include "config.php";
                     <div class="btn-group">';
             if ($loopUsersResult['live_status'] == 1) {
                 if ($loopUsersResult['private'] == 1 && $loopUsersResult['private_key'] != null) {
-                    echo ' <a class="btn btn-primary" href="'. $rtmpurl . $loopUsersResult['username'] . '?key=' . $loopUsersResult['private_key'] . '" >Watch</a>';
+                    echo ' <a class="btn btn-primary" href="' . $rtmpurl . $loopUsersResult['username'] . '?key=' . $loopUsersResult['private_key'] . '" >Watch</a>';
                 }
                 if ($loopUsersResult['private'] == 0) {
-                    echo ' <a class="btn btn-primary" href="'. $rtmpurl . $loopUsersResult['username'] . '" >Watch</a>';
+                    echo ' <a class="btn btn-primary" href="' . $rtmpurl . $loopUsersResult['username'] . '" >Watch</a>';
                 }
             }
             echo '<button type="submit" class="btn btn-primary" value="' . $loopUsersResult['id_user'] . '" name="save">Save</button>
                         <button type="submit" class="btn btn-danger" value="' . $loopUsersResult['id_user'] . '" name="delete">Delete</button>
-            
                         </div>
                         </div>
                 </div>

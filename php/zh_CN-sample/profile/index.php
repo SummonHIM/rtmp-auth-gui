@@ -1,5 +1,5 @@
 <?php
-include "config.php";
+include "../config.php";
 ?>
 
 <!doctype html>
@@ -29,19 +29,40 @@ include "config.php";
             die();
         }
 
+        if (isset($_POST["save"])) {
+            $qCheckUsersInfo = "SELECT * FROM users";
+            $qCheckUsersResult = $dbh->prepare("select id_user,username,stream_key,private,private_key,live_status from users WHERE id_user <> :old_id_user");
+            $qCheckUsersResult->execute(array(':old_id_user' => $_POST['save']));
+        }
+        if (isset($_POST["new"])) {
+            $qCheckUsersInfo = "SELECT * FROM users";
+            $qCheckUsersResult = $dbh->query('select id_user,username,stream_key,private,private_key,live_status from users');
+        }
+
+        if (isset($qCheckUsersInfo)) {
+            while ($loopUsersResult = $qCheckUsersResult->fetch()) {
+                if ($_POST['id_user'] == $loopUsersResult['id_user'] || $_POST["username"] == $loopUsersResult['username'] || $_POST["stream_key"] == $loopUsersResult['stream_key']) {
+                    $postGotSame = true;
+                }
+            }
+        }
+
         if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($_POST['id_user'] == null) {
                 echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
                     必须填入用户 ID
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                ';
+                </div>';
             } elseif (!is_numeric($_POST['id_user'])) {
                 echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
                     用户 ID 必须为数字！
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                ';
+                </div>';
+            } elseif ($postGotSame == true) {
+                echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    存在相同的数据！
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>';
             } else {
                 if (isset($_POST["save"])) {
                     $qGetUserIDInfo = $dbh->prepare("SELECT id_user,username,stream_key,private,private_key,live_status FROM users WHERE id_user = :old_id_user");
@@ -138,7 +159,7 @@ include "config.php";
             if ($loopUsersResult['private'] == 1 && $loopUsersResult['private_key'] == null) {
                 echo ' <span class="badge bg-danger">未设置观看密码</span>';
             }
-            echo '</h5><div class="card-body">
+            echo '</h5><div class="card-body" id="' . $loopUsersResult['id_user'] . '">
                         <div class="row align-items-center" style="margin-bottom: 1%;">
                             <div class="col-sm-3">用户 ID</div>
                             <div class="col-sm-9"><input type="text" class="form-control" name="id_user" maxlength="11" value="' . $loopUsersResult['id_user'] . '"></div>
@@ -172,13 +193,13 @@ include "config.php";
                         </div>';
             if ($loopUsersResult['username'] != null && $loopUsersResult['stream_key'] != null) {
                 if ($loopUsersResult['private'] == 1 && $loopUsersResult['private_key'] != null) {
-                    echo '<div class="alert alert-success" role="alert">OBS 串流地址：' . $rtmpurl . '<br>OBS 串流密钥：' . $loopUsersResult['stream_key'] . '<br>用户观看地址：'. $rtmpurl . $loopUsersResult['username'] . '?key=' . $loopUsersResult['private_key'] . '</div>';
+                    echo '<div class="alert alert-success" role="alert">OBS 串流地址：' . $rtmpurl . '<br>OBS 串流密钥：' . $loopUsersResult['stream_key'] . '<br>用户观看地址：' . $rtmpurl . $loopUsersResult['username'] . '?key=' . $loopUsersResult['private_key'] . '</div>';
                 }
                 if ($loopUsersResult['private'] == 1 && $loopUsersResult['private_key'] == null) {
                     echo '<div class="alert alert-success" role="alert">OBS 串流地址：' . $rtmpurl . '<br>OBS 串流密钥：' . $loopUsersResult['stream_key'] . '<br>用户观看地址：无法观看</div>';
                 }
                 if ($loopUsersResult['private'] == 0) {
-                    echo '<div class="alert alert-success" role="alert">OBS 串流地址：' . $rtmpurl . '<br>OBS 串流密钥：' . $loopUsersResult['stream_key'] . '<br>用户观看地址：'. $rtmpurl . $loopUsersResult['username'] . '</div>';
+                    echo '<div class="alert alert-success" role="alert">OBS 串流地址：' . $rtmpurl . '<br>OBS 串流密钥：' . $loopUsersResult['stream_key'] . '<br>用户观看地址：' . $rtmpurl . $loopUsersResult['username'] . '</div>';
                 }
             }
             echo '</div>
@@ -186,15 +207,14 @@ include "config.php";
                     <div class="btn-group">';
             if ($loopUsersResult['live_status'] == 1) {
                 if ($loopUsersResult['private'] == 1 && $loopUsersResult['private_key'] != null) {
-                    echo ' <a class="btn btn-primary" href="'. $rtmpurl . $loopUsersResult['username'] . '?key=' . $loopUsersResult['private_key'] . '" >观看</a>';
+                    echo ' <a class="btn btn-primary" href="' . $rtmpurl . $loopUsersResult['username'] . '?key=' . $loopUsersResult['private_key'] . '" >观看</a>';
                 }
                 if ($loopUsersResult['private'] == 0) {
-                    echo ' <a class="btn btn-primary" href="'. $rtmpurl . $loopUsersResult['username'] . '" >观看</a>';
+                    echo ' <a class="btn btn-primary" href="' . $rtmpurl . $loopUsersResult['username'] . '" >观看</a>';
                 }
             }
             echo '<button type="submit" class="btn btn-primary" value="' . $loopUsersResult['id_user'] . '" name="save">保存</button>
                         <button type="submit" class="btn btn-danger" value="' . $loopUsersResult['id_user'] . '" name="delete">删除</button>
-            
                         </div>
                         </div>
                 </div>

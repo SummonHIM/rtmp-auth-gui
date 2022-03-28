@@ -32,7 +32,7 @@ include "config.php";
         echo '
         <div class="row" style="margin-bottom: 5%;">
             <div class="col-md-9"><h1 style="margin-bottom: 5%;">RTMP Stream System</h1></div>
-            <div class="col-md-3"><a type="button" class="btn btn-primary btn-lg" href="profile.php">Edit User</a></div>
+            <div class="col-md-3"><a type="button" class="btn btn-primary btn-lg" href="profile">Edit User</a></div>
         </div>
         ';
 

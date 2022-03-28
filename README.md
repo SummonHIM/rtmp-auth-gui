@@ -21,7 +21,7 @@ Requires MySQL/MariaDB, PHP, [NGINX RTMP/FLV Module](https://github.com/winshini
 
 1. Setup a webserver to listen on 127.0.0.1
 2. Edit NGINX Configuration RTMP section to contain:
-```
+```conf
 rtmp {
     server {
         listen **{port}**;
@@ -40,6 +40,27 @@ rtmp {
 2. Edit the 'profile.php' to point to the proper Database information
 3. Edit the SQL Database or access the 'index.php' to contain information for a valid key(s) & username(s).
 
+## Warning
+
+The 'profile.php' doesn't have any administrator auth protect. it mean anyone can edit the auth database
+
+But you can use the nginx's auth to protect this page
+
+1. Use OpesSSL to create a nginx user password
+   
+```shell
+printf "{Fill Your Username}:$(openssl passwd -apr1)" >> /path/to/nginx/conf/passwords
+```
+
+1. Edit the nginx configure file and add auth_base to where your 'profile.php' in
+
+```conf
+location /path/to/profile/ {    
+    auth_basic "Protected";
+    auth_basic_user_file passwords;
+}
+```
+
 # OBS
 
 OBS Stream Settings
@@ -48,7 +69,7 @@ Server: rtmp://**{IP}**/**{app}**
 
 Stream Key: **{Key}**
 
-### Notes
+## Notes
 
 Don't check "Use Authenication"
 

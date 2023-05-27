@@ -23,7 +23,7 @@ include "config.php";
             $dbh = new PDO('mysql:host=' . $dbhost . ';dbname=' . $dbname . ';charset=utf8', $dbusername, $dbpassword);
             $dbh->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
         } catch (PDOException $e) {
-            echo '<div class="alert alert-danger" role="alert"><b>Database Error! </b>';
+            echo '<div class="alert alert-danger" role="alert"><b>Database Error!</b>';
             echo 'Message: ' . $e->getMessage();
             echo "</div>";
             die();
